@@ -2,90 +2,47 @@
 
 > What if the next generation of games wasn't about more pixels?
 
-A proof of concept for connecting **Portal 2 game state** to a generative GLaDOS that can observe, remember, and react to the player's behaviour.
+An early proof-of-concept project connecting **Portal 2's observed game state** to a generative GLaDOS that can remember and react to the player's behavior.
 
-## Goal
+**Status: engineering foundation, not yet a working generative-AI mod.** The original `bridge.py` is a deterministic placeholder. A real Portal 2 -> language model -> voice round trip has not yet been demonstrated.
 
-Keep Portal 2's original campaign and canonical dialogue intact. Add short, supplementary GLaDOS remarks generated from what the player actually does.
+## The intended experience
 
-The first milestone is deliberately small:
+Keep the original single-player campaign and recorded dialogue. Add occasional, short, newly generated remarks about what the player actually did. No microphone or player dialogue. Add requested, progressively more specific hints only when they are grounded in verified room state.
 
-1. Portal 2 emits one structured gameplay event.
-2. A local bridge receives it.
-3. A generator produces one short GLaDOS-style reaction.
-4. The reaction is returned for in-game playback.
+One carefully integrated campaign room is the first release scope. The graphics and puzzle rules are unchanged.
 
-No microphone or player dialogue is required.
+## Start here
 
-## Design principles
+- [Implementation plan and acceptance gates](docs/PLAN.md)
+- [Verified findings and unresolved assumptions](docs/FINDINGS.md)
+- [Current handoff](HANDOFF.md)
+- [Next live Portal 2 probe test](docs/PROBE.md)
 
-- **Campaign first.** Test chambers are a development sandbox; the campaign is the showcase.
-- **Do not replace canonical dialogue.** Generated remarks fill appropriate gaps.
-- **Actions are the input.** GLaDOS reacts to gameplay, not player speech.
-- **Silence matters.** Most events should produce no remark.
-- **Memory matters.** Repetition and prior behaviour should change later reactions.
-- **Hints should scaffold, not spoil.** A manual hint request may become progressively more explicit.
-- **Game state beats vision.** Prefer structured engine state over screen recognition.
-- **Local-first eventually.** The PoC may keep model/TTS backends swappable so local inference can be used.
+The initial probe targets `catcher_1` in `sp_a2_laser_intro` and `sp_a2_laser_stairs`. It listens for receiver power changes; it does not claim to understand arbitrary player actions. Its engine runtime test is still pending.
 
-## PoC event format
+## Run the dependency-free reader tests
 
-Example:
+Python 3.11 or later. Windows PowerShell, from the repository:
 
-```json
-{
-  "event": "portal_attempt",
-  "map": "example_map",
-  "timestamp": 123.4,
-  "details": {
-    "valid_surface": false,
-    "repeat_count": 3
-  }
-}
+```powershell
+$env:PYTHONPATH = (Join-Path (Get-Location) 'src')
+py -m unittest discover -s tests -v
+py -m generative_glados.telemetry tests/fixtures/probe.synthetic.log
 ```
 
-## Architecture
+On Linux/macOS, use `PYTHONPATH=src python -m unittest discover -s tests -v`.
 
-```text
-Portal 2
-   |
-   | structured event
-   v
-Portal adapter  --->  event log / memory
-   |
-   v
-Generative bridge
-   |
-   +--> response policy (speak or stay silent)
-   |
-   +--> LLM
-   |
-   +--> optional TTS
-   |
-   v
-Portal 2 playback
-```
+The replay is **synthetic**, labelled in every observation, and proves only the reader contract. For a live run and cleanup, follow the probe instructions rather than editing `mapspawn.nut` or global key bindings.
 
-## Status
+## Boundaries
 
-🚧 Early proof of concept.
+Observe through small game-side hooks; reduce state and manage speech timing outside the engine; send bounded facts to a replaceable model; synthesize and play short responses only when permitted. The language model never gets arbitrary game-console or operating-system execution.
 
-Current target: establish the round trip with a single campaign gameplay event before adding long-term memory, adaptive hints, or broad event coverage.
+Local inference is the goal, not a measured achievement yet. The first voice experiment may play externally through the normal audio device; it must not be described as native Source audio injection. Original dialogue takes priority. Failure should make the added character quiet, not break the game.
 
-## Roadmap
+## Dependencies and distribution
 
-- [ ] Receive a synthetic event in the bridge
-- [ ] Generate a constrained one-line reaction
-- [ ] Identify and capture one Portal 2 campaign event
-- [ ] Return generated output to Portal 2
-- [ ] Play generated audio in game
-- [ ] Add repetition memory
-- [ ] Add speech cooldown / salience policy
-- [ ] Add manual adaptive hint command
-- [ ] Package a reproducible campaign demo
+The [GLaDOS Personality Core](https://github.com/dnhkng/GLaDOS) is a candidate for narrow voice/backend reuse, not a Portal adapter already included here. No upstream code, model weights, Valve assets, or extracted audio are bundled at this checkpoint. Public-release licence choices and voice/model distribution checks remain on the release checklist.
 
-## Legal / project scope
-
-This is an independent fan-made research/prototyping project and is not affiliated with or endorsed by Valve.
-
-Do not commit proprietary Portal 2 assets or extracted game audio to this repository. AI/TTS backends should remain replaceable; users are responsible for complying with the terms and licences of the models and assets they choose.
+This is an independent fan-made project, not affiliated with or endorsed by Valve. Do not commit proprietary game assets, personal saves, credentials, or raw personal logs.

@@ -1,0 +1,4 @@
+# SYNTHETIC FIXTURE: not captured from Portal 2
+[GG_EVENT] {"schema_version": 1, "origin": "synthetic", "event": "bridge_attached", "map": "sp_a2_laser_intro", "run_id": "synthetic-fixture", "seq": 1, "game_time": 1, "data": {"target": "catcher_1", "powered": null, "laser_hook": true}}
+[GG_EVENT] {"schema_version": 1, "origin": "synthetic", "event": "laser_powered", "map": "sp_a2_laser_intro", "run_id": "synthetic-fixture", "seq": 2, "game_time": 5, "data": {"target": "catcher_1", "powered": true, "laser_hook": true}}
+[GG_EVENT] {"schema_version": 1, "origin": "synthetic", "event": "laser_unpowered", "map": "sp_a2_laser_intro", "run_id": "synthetic-fixture", "seq": 3, "game_time": 8, "data": {"target": "catcher_1", "powered": false, "laser_hook": true}}
